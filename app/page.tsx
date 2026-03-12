@@ -446,6 +446,7 @@ export default function HomePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
+          onClick={() => mode === "email" && inputRef.current?.focus()}
           style={{
             fontFamily: "var(--font-geist-mono)",
             fontSize: 14,
@@ -454,6 +455,9 @@ export default function HomePage() {
             width: "100%",
             maxWidth: 460,
             padding: "0 24px",
+            position: "relative",
+            zIndex: 1,
+            cursor: mode === "email" ? "text" : "default",
           }}
         >
           {terminalLines.map((line, i) => (
@@ -496,18 +500,24 @@ export default function HomePage() {
               />
               <input
                 ref={inputRef}
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={handleKeyDown}
+                autoComplete="off"
+                autoCapitalize="off"
+                spellCheck={false}
                 style={{
-                  position: "absolute",
-                  opacity: 0,
-                  width: 0,
-                  height: 0,
+                  position: "fixed",
+                  top: -100,
+                  left: -100,
+                  width: 1,
+                  height: 1,
+                  opacity: 0.01,
                   border: "none",
                   padding: 0,
-                  pointerEvents: "auto",
+                  outline: "none",
+                  caretColor: "transparent",
                 }}
                 autoFocus
               />
@@ -601,10 +611,10 @@ export default function HomePage() {
         <div
           onClick={() => inputRef.current?.focus()}
           style={{
-            position: "absolute",
+            position: "fixed",
             inset: 0,
             cursor: "text",
-            zIndex: -1,
+            zIndex: 0,
           }}
         />
       )}
