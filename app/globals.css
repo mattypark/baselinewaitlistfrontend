@@ -3,7 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
-  --accent: #000000;
+  --accent: #dc143c;
   --muted: #9ca3af;
   --border: #e5e5e5;
   --surface: #fafafa;
@@ -44,8 +44,8 @@ body {
 /* Animated grid background */
 .grid-bg {
   background-image:
-    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    linear-gradient(rgba(220,20,60,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(220,20,60,0.045) 1px, transparent 1px);
   background-size: 60px 60px;
 }
 
@@ -81,7 +81,7 @@ body {
   position: absolute;
   inset: -4px;
   border-radius: inherit;
-  border: 1px solid rgba(0,0,0,0.15);
+  border: 1px solid rgba(220,20,60,0.25);
   animation: pulseRing 2s ease-out infinite;
 }
 
@@ -130,4 +130,4 @@ body {
 ::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 2px; }
 
 /* Selection */
-::selection { background: #000; color: #fff; }
+::selection { background: #dc143c; color: #fff; }

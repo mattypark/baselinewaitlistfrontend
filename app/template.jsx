@@ -44,7 +44,7 @@ export default function Template({ children }) {
           ))}
           <svg className={styles.connectionsSvg}>
             {[{ d: 'M 20 18 L 53 36', delay: 1.2 }, { d: 'M 53 36 L 33 54', delay: 1.4 }, { d: 'M 33 54 L 73 72', delay: 1.6 }, { d: 'M 53 36 L 80 27', delay: 1.5 }, { d: 'M 13 63 L 33 54', delay: 1.7 }].map((line, i) => (
-              <motion.line key={`conn-${i}`} x1={`${line.d.split(' ')[1]}%`} y1={`${line.d.split(' ')[2]}%`} x2={`${line.d.split(' ')[4]}%`} y2={`${line.d.split(' ')[5]}%`} stroke="rgba(0, 0, 0, 0.25)" strokeWidth="1" initial={{ pathLength: 0, opacity: 1 }} animate={{ pathLength: [0, 1, 1], opacity: [1, 1, 0], transition: { pathLength: { duration: 0.8, delay: line.delay, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.4, delay: EXIT + 0.1 * i, ease: 'easeOut' } } }} />
+              <motion.line key={`conn-${i}`} x1={`${line.d.split(' ')[1]}%`} y1={`${line.d.split(' ')[2]}%`} x2={`${line.d.split(' ')[4]}%`} y2={`${line.d.split(' ')[5]}%`} stroke="rgba(220, 20, 60, 0.25)" strokeWidth="1" initial={{ pathLength: 0, opacity: 1 }} animate={{ pathLength: [0, 1, 1], opacity: [1, 1, 0], transition: { pathLength: { duration: 0.8, delay: line.delay, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.4, delay: EXIT + 0.1 * i, ease: 'easeOut' } } }} />
             ))}
           </svg>
           <div className={`${styles.cornerBracket} ${styles.topLeft}`} />
