@@ -1,4 +1,11 @@
 .pageTransition { position: relative; background: #ffffff; min-height: 100vh; }
+
+/* ── Red screen intro ── */
+.redScreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 200; background-color: #dc143c; display: flex; align-items: center; justify-content: center; }
+.redTerminal { display: flex; flex-direction: column; gap: 6px; }
+.redLine { font-size: 14px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; color: rgba(255,255,255,0.85); letter-spacing: 0.04em; white-space: nowrap; }
+.redCursor { display: inline-block; width: 8px; height: 14px; background-color: rgba(255,255,255,0.8); margin-left: 2px; vertical-align: text-bottom; animation: redBlink 0.6s step-end infinite; }
+@keyframes redBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 .gridScreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100; pointer-events: none; background-color: #fafafa; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .gridLineH { position: absolute; left: 0; width: 100%; height: 1px; background-color: rgba(220, 20, 60, 0.12); }
 .gridLineV { position: absolute; top: 0; height: 100%; width: 1px; background-color: rgba(220, 20, 60, 0.12); }
@@ -12,10 +19,17 @@
 .bottomLeft { bottom: 32px; left: 32px; &::before { bottom: 0; left: 0; width: 32px; height: 1px; } &::after { bottom: 0; left: 0; width: 1px; height: 32px; } }
 .bottomRight { bottom: 32px; right: 32px; &::before { bottom: 0; right: 0; width: 32px; height: 1px; } &::after { bottom: 0; right: 0; width: 1px; height: 32px; } }
 .coordText { position: absolute; font-size: 11px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; color: rgba(220,20,60,0.4); letter-spacing: 0.12em; z-index: 7; text-transform: uppercase; }
-.routeText { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 24px; z-index: 10; }
-.routeLabel { font-size: 13px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; color: rgba(220,20,60,0.4); letter-spacing: 0.3em; }
-.letters { display: flex; align-items: center; gap: 4px; }
-.letter { font-size: clamp(56px, 12vw, 120px); font-weight: 200; color: #111; letter-spacing: 0.14em; display: inline-block; text-transform: uppercase; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
-.cursor { font-size: clamp(56px, 12vw, 120px); font-weight: 100; color: rgba(220,20,60,0.5); margin-left: 6px; }
-.loadingBarTrack { width: 260px; height: 2px; background-color: rgba(220,20,60,0.1); border-radius: 1px; overflow: hidden; }
+.routeText { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 10; }
+.routeLabel { font-size: 16px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; color: rgba(220,20,60,0.4); letter-spacing: 0.3em; text-transform: none; }
+
+/* Logo — b with blinking underscore */
+.logoRow { display: flex; align-items: baseline; gap: 0; }
+.logoText { font-size: clamp(36px, 6vw, 56px); font-weight: 400; color: #111; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; letter-spacing: -0.02em; }
+.logoCursor { display: inline-block; width: 0.6em; height: 2px; background-color: #111; margin-left: 2px; margin-bottom: -2px; font-size: clamp(36px, 6vw, 56px); }
+
+/* Boot messages */
+.bootMessages { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bootLine { font-size: 12px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; color: rgba(0,0,0,0.3); letter-spacing: 0.04em; }
+
+.loadingBarTrack { width: 200px; height: 2px; background-color: rgba(220,20,60,0.1); border-radius: 1px; overflow: hidden; }
 .loadingBarFill { width: 100%; height: 100%; background: linear-gradient(90deg, rgba(220,20,60,0.25), rgba(220,20,60,0.6)); border-radius: 1px; }

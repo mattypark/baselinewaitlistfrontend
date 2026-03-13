@@ -8,8 +8,8 @@ const FULL_TEXT = "baseline is the next generation for info.";
 const TYPE_SPEED = 60;
 const DELETE_SPEED = 35;
 const PAUSE_AFTER_TYPE = 2000;
-const PAUSE_AFTER_DELETE = 3200;
-const INITIAL_BLINK_PAUSE = 4000;
+const PAUSE_AFTER_DELETE = 2500;
+const INITIAL_BLINK_PAUSE = 2500;
 
 // ── Terminal boot sequence ───────────────────────────────────────────────────
 const TERMINAL_LINES = [

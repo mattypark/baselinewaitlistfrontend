@@ -1,35 +1,90 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import SmoothScroll from './smooth-scroll';
 import styles from './template.module.scss';
 
-const routes = {
-  '/': 'Baseline',
-}
-
 const numRows = 10;
 const numCols = 14;
 const EXIT = 2.8;
-const OVERLAY_DURATION = 4200; // ms — remove overlay from DOM after animation completes
+const RED_DURATION = 1800;
+const OVERLAY_DURATION = RED_DURATION + 4200;
 
 export default function Template({ children }) {
   const pathname = usePathname();
-  const routeName = routes[pathname] || 'Baseline';
-  const letters = routeName.toUpperCase().split('');
   const [timestamp, setTimestamp] = useState('');
   const [showOverlay, setShowOverlay] = useState(true);
+  const [phase, setPhase] = useState('red');
+  const [redLine1, setRedLine1] = useState('');
+  const [redLine2, setRedLine2] = useState('');
+
+  const line1 = '> sys.boot --baseline';
+  const line2 = '> launching interface...';
 
   useEffect(() => {
     setTimestamp(new Date().toISOString().slice(0, 19));
     const timer = setTimeout(() => setShowOverlay(false), OVERLAY_DURATION);
-    return () => clearTimeout(timer);
+
+    // Type out line 1 character by character
+    let i = 0;
+    const t1Start = 300;
+    const t1 = setTimeout(() => {
+      const iv1 = setInterval(() => {
+        i++;
+        setRedLine1(line1.slice(0, i));
+        if (i >= line1.length) clearInterval(iv1);
+      }, 35);
+    }, t1Start);
+
+    // Type out line 2
+    let j = 0;
+    const t2Start = t1Start + line1.length * 35 + 200;
+    const t2 = setTimeout(() => {
+      const iv2 = setInterval(() => {
+        j++;
+        setRedLine2(line2.slice(0, j));
+        if (j >= line2.length) clearInterval(iv2);
+      }, 30);
+    }, t2Start);
+
+    // Transition to grid phase
+    const t3 = setTimeout(() => setPhase('grid'), RED_DURATION);
+
+    return () => { clearTimeout(timer); clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, []);
 
   return (
     <div className={styles.pageTransition}>
       {showOverlay && (
+        <>
+        {/* ── Red screen intro ── */}
+        <AnimatePresence>
+          {phase === 'red' && (
+            <motion.div
+              className={styles.redScreen}
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
+            >
+              <div className={styles.redTerminal}>
+                <div className={styles.redLine}>
+                  {redLine1}
+                  {redLine1.length < line1.length && <span className={styles.redCursor} />}
+                </div>
+                {redLine1.length >= line1.length && (
+                  <div className={styles.redLine}>
+                    {redLine2}
+                    <span className={styles.redCursor} />
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Grid transition ── */}
+        {phase === 'grid' && (
         <motion.div className={styles.gridScreen} initial={{ opacity: 1 }} animate={{ opacity: 0, transition: { duration: 0.3, delay: EXIT + 1.0, ease: 'easeOut' } }}>
           {[...Array(numRows)].map((_, i) => (
             <motion.div key={`h-${i}`} className={styles.gridLineH} initial={{ scaleX: 0 }} animate={{ scaleX: [0, 1, 1, 0], transition: { times: [0, 0.25, 0.7, 1], duration: 4.0, delay: 0.06 * i, ease: [0.22, 1, 0.36, 1] } }} style={{ top: `${((i + 1) / (numRows + 1)) * 100}%`, transformOrigin: i % 2 === 0 ? 'left' : 'right' }} />
@@ -58,24 +113,26 @@ export default function Template({ children }) {
               {item.text}
             </motion.span>
           ))}
+
+          {/* ── Center content ── */}
           <div className={styles.routeText}>
             <div className={styles.routeLabel}>
-              <motion.span initial={{ opacity: 0 }} animate={{ opacity: [0, 0.4, 0.4, 0], transition: { times: [0, 0.12, 0.72, 1], duration: 3.8, delay: 0.4 } }}>NAVIGATING TO</motion.span>
+              <motion.span initial={{ opacity: 0 }} animate={{ opacity: [0, 0.4, 0.4, 0], transition: { times: [0, 0.12, 0.72, 1], duration: 3.8, delay: 0.4 } }}>
+                initializing
+              </motion.span>
             </div>
-            <div className={styles.letters}>
-              {letters.map((letter, i) => (
-                <motion.span key={i} className={styles.letter} initial={{ opacity: 0, y: 20, filter: 'blur(12px)' }} animate={{ opacity: [0, 1, 1, 0], y: [20, 0, 0, -10], filter: ['blur(12px)', 'blur(0px)', 'blur(0px)', 'blur(4px)'], transition: { times: [0, 0.18, 0.72, 1], duration: 3.8, delay: 0.5 + 0.12 * i, ease: [0.22, 1, 0.36, 1] } }}>{letter}</motion.span>
-              ))}
-              <motion.span className={styles.cursor} animate={{ opacity: [0, 1, 0, 1, 0, 1, 0, 1, 0], transition: { duration: 2.4, delay: 1.0, repeat: 0 } }}>|</motion.span>
-            </div>
+
+            {/* Loading bar */}
             <div className={styles.loadingBarTrack}>
               <motion.div className={styles.loadingBarFill} initial={{ scaleX: 0 }} animate={{ scaleX: [0, 1, 1, 0], transition: { times: [0, 0.65, 0.8, 1], duration: 3.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] } }} style={{ transformOrigin: 'left' }} />
             </div>
           </div>
         </motion.div>
+        )}
+        </>
       )}
       <SmoothScroll />
-      <div>{children}</div>
+      {!showOverlay && <div>{children}</div>}
     </div>
   );
 }
