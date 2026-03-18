@@ -129,5 +129,12 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 2px; }
 
+/* Mobile exit button — only visible on touch/small screens */
+@media (max-width: 768px) {
+  .mobile-exit-btn {
+    display: flex !important;
+  }
+}
+
 /* Selection */
 ::selection { background: #dc143c; color: #fff; }

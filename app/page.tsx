@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ── Typewriter config ────────────────────────────────────────────────────────
-const FULL_TEXT = "baseline is the next generation for info.";
+const FULL_TEXT = "baseline makes your future definite.";
 const TYPE_SPEED = 60;
 const DELETE_SPEED = 35;
 const PAUSE_AFTER_TYPE = 2000;
@@ -59,12 +59,7 @@ function useTypewriter(paused: boolean) {
     }
 
     let timeout: ReturnType<typeof setTimeout>;
-    let charIndex = 0;
-
-    const startTyping = () => {
-      charIndex = 0;
-      typeNext();
-    };
+    let charIndex = 1;
 
     const typeNext = () => {
       if (charIndex < FULL_TEXT.length) {
@@ -72,12 +67,8 @@ function useTypewriter(paused: boolean) {
         setDisplay(FULL_TEXT.slice(0, charIndex));
         timeout = setTimeout(typeNext, TYPE_SPEED);
       } else {
-        timeout = setTimeout(startDeleting, PAUSE_AFTER_TYPE);
+        timeout = setTimeout(deleteNext, PAUSE_AFTER_TYPE);
       }
-    };
-
-    const startDeleting = () => {
-      deleteNext();
     };
 
     const deleteNext = () => {
@@ -87,11 +78,11 @@ function useTypewriter(paused: boolean) {
         timeout = setTimeout(deleteNext, DELETE_SPEED);
       } else {
         setDisplay("b");
-        timeout = setTimeout(startTyping, PAUSE_AFTER_DELETE);
+        timeout = setTimeout(typeNext, PAUSE_AFTER_DELETE);
       }
     };
 
-    timeout = setTimeout(startTyping, INITIAL_BLINK_PAUSE);
+    timeout = setTimeout(typeNext, INITIAL_BLINK_PAUSE);
 
     return () => clearTimeout(timeout);
   }, [paused]);
@@ -191,12 +182,14 @@ async function runLineSequence(
 
 // ── Main component ───────────────────────────────────────────────────────────
 export default function HomePage() {
-  const [mode, setMode] = useState<"home" | "terminal" | "email" | "exiting">("home");
+  const [mode, setMode] = useState<"home" | "terminal" | "email" | "usecase" | "exiting">("home");
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [position, setPosition] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [alreadyExists, setAlreadyExists] = useState(false);
+  const [usecase, setUsecase] = useState("");
+  const [usecaseSubmitted, setUsecaseSubmitted] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [ctrlCCount, setCtrlCCount] = useState(0);
   const [terminalKey, setTerminalKey] = useState(0);
@@ -204,10 +197,11 @@ export default function HomePage() {
   const ctrlCTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exitCancelledRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const usecaseInputRef = useRef<HTMLInputElement>(null);
 
   const { display, cursorVisible } = useTypewriter(mode !== "home");
   const { lines: terminalLines, done, emailCursorVisible } = useTerminalSequence(
-    mode === "terminal" || mode === "email",
+    mode === "terminal" || mode === "email" || mode === "usecase",
     terminalKey
   );
 
@@ -218,6 +212,8 @@ export default function HomePage() {
     setSubmitted(false);
     setPosition(null);
     setAlreadyExists(false);
+    setUsecase("");
+    setUsecaseSubmitted(false);
     setCtrlCCount(0);
     setExitLines([]);
     setTerminalKey((k) => k + 1);
@@ -262,25 +258,30 @@ export default function HomePage() {
     }
   }, [mode]);
 
-  // Listen for Ctrl+C globally when in terminal/email mode
+  // Listen for Ctrl+C / Escape globally when in terminal/email/usecase mode
   useEffect(() => {
-    if (mode !== "terminal" && mode !== "email") return;
+    if (mode !== "terminal" && mode !== "email" && mode !== "usecase") return;
 
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Escape exits immediately
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setTimeout(() => setMode("exiting"), 0);
+        return;
+      }
+
       if (e.key === "c" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
 
         setCtrlCCount((prev) => {
           const newCount = prev + 1;
           if (newCount >= 2) {
-            // Use setTimeout to avoid state update during render
             setTimeout(() => setMode("exiting"), 0);
             return 0;
           }
           return newCount;
         });
 
-        // Reset count after 1.5s if second Ctrl+C doesn't come
         if (ctrlCTimerRef.current) clearTimeout(ctrlCTimerRef.current);
         ctrlCTimerRef.current = setTimeout(() => {
           setCtrlCCount(0);
@@ -313,17 +314,47 @@ export default function HomePage() {
       setPosition(data.position);
       setAlreadyExists(data.alreadyExists);
       setSubmitted(true);
+      // Transition to usecase question after a delay
+      setTimeout(() => {
+        setMode("usecase");
+        setTimeout(() => usecaseInputRef.current?.focus(), 100);
+      }, 2000);
     } catch {
       setSubmitted(true);
       setPosition(null);
+      setTimeout(() => {
+        setMode("usecase");
+        setTimeout(() => usecaseInputRef.current?.focus(), 100);
+      }, 2000);
     } finally {
       setSubmitting(false);
     }
   };
 
+  const handleUsecaseSubmit = async () => {
+    if (usecaseSubmitted) return;
+    setUsecaseSubmitted(true);
+    // Send usecase to backend if provided
+    if (usecase.trim()) {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+        await fetch(`${API_URL}/api/waitlist/usecase`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, usecase }),
+        });
+      } catch {
+        // Silent fail — optional field
+      }
+    }
+    // Go back home via exit animation
+    setTimeout(() => setMode("exiting"), 1500);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      handleEmailSubmit();
+      if (mode === "email") handleEmailSubmit();
+      else if (mode === "usecase") handleUsecaseSubmit();
     }
   };
 
@@ -354,11 +385,11 @@ export default function HomePage() {
           fontSize: 16,
           letterSpacing: "0.12em",
           textTransform: "uppercase",
-          color: "#999",
+          color: "#dc143c",
           fontFamily: "var(--font-geist-mono)",
         }}
       >
-        Coming 2026
+        Summer 2026
       </motion.span>
 
       {/* ── HOME STATE ── */}
@@ -379,14 +410,15 @@ export default function HomePage() {
             {/* Typewriter text */}
             <div
               style={{
-                fontSize: "clamp(32px, 5vw, 48px)",
+                fontSize: "clamp(18px, 4vw, 36px)",
                 fontWeight: 400,
                 fontFamily: "var(--font-geist-mono)",
                 letterSpacing: "-0.02em",
                 color: "#111",
                 marginBottom: 48,
                 minHeight: "1.4em",
-                whiteSpace: "nowrap",
+                textAlign: "center",
+                maxWidth: "90vw",
               }}
             >
               {display}
@@ -413,7 +445,7 @@ export default function HomePage() {
               style={{
                 fontSize: 14,
                 fontFamily: "var(--font-geist-mono)",
-                color: "#111",
+                color: hovered ? "#dc143c" : "#111",
                 background: "none",
                 border: "none",
                 cursor: "pointer",
@@ -421,6 +453,7 @@ export default function HomePage() {
                 position: "relative",
                 display: "inline-block",
                 padding: "4px 0",
+                transition: "color 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
               }}
             >
               &gt;waitlist
@@ -430,7 +463,7 @@ export default function HomePage() {
                   bottom: 0,
                   left: 0,
                   height: 1,
-                  background: "#111",
+                  background: "#dc143c",
                   transition: "width 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
                   width: hovered ? "100%" : "0%",
                 }}
@@ -440,13 +473,16 @@ export default function HomePage() {
         )}
       </AnimatePresence>
 
-      {/* ── TERMINAL / EMAIL STATE ── */}
-      {(mode === "terminal" || mode === "email") && (
+      {/* ── TERMINAL / EMAIL / USECASE STATE ── */}
+      {(mode === "terminal" || mode === "email" || mode === "usecase") && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          onClick={() => mode === "email" && inputRef.current?.focus()}
+          onClick={() => {
+            if (mode === "email") inputRef.current?.focus();
+            if (mode === "usecase") usecaseInputRef.current?.focus();
+          }}
           style={{
             fontFamily: "var(--font-geist-mono)",
             fontSize: 14,
@@ -457,9 +493,38 @@ export default function HomePage() {
             padding: "0 24px",
             position: "relative",
             zIndex: 1,
-            cursor: mode === "email" ? "text" : "default",
+            cursor: mode === "email" || mode === "usecase" ? "text" : "default",
           }}
         >
+          {/* Mobile X button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setMode("exiting");
+            }}
+            className="mobile-exit-btn"
+            style={{
+              position: "absolute",
+              top: -8,
+              right: 16,
+              width: 32,
+              height: 32,
+              display: "none",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "none",
+              border: "1px solid #ddd",
+              borderRadius: 6,
+              cursor: "pointer",
+              color: "#999",
+              fontSize: 16,
+              fontFamily: "var(--font-geist-mono)",
+              zIndex: 10,
+            }}
+            aria-label="Exit waitlist"
+          >
+            ✕
+          </button>
           {terminalLines.map((line, i) => (
             <div
               key={i}
@@ -531,7 +596,7 @@ export default function HomePage() {
               >
                 {ctrlCCount === 1
                   ? "press ctrl+c again to exit"
-                  : "press ctrl+c twice to exit"}
+                  : "press esc or ctrl+c twice to exit"}
               </div>
             </motion.div>
           )}
@@ -563,6 +628,86 @@ export default function HomePage() {
                 >
                   position: #{position}
                 </motion.div>
+              )}
+            </motion.div>
+          )}
+
+          {mode === "usecase" && !usecaseSubmitted && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              style={{
+                marginTop: 16,
+                position: "relative",
+                whiteSpace: "pre",
+              }}
+            >
+              <div style={{ color: "#111" }}>what will you use Baseline for?</div>
+              <div style={{ marginTop: 4 }}>
+                <span style={{ color: "#dc143c" }}>&gt; </span>
+                <span style={{ color: "#dc143c" }}>{usecase}</span>
+                <span
+                  style={{
+                    display: "inline-block",
+                    width: "0.55em",
+                    height: "2px",
+                    background: "#111",
+                    verticalAlign: "baseline",
+                    marginLeft: "1px",
+                    marginBottom: "-0.15em",
+                    opacity: emailCursorVisible ? 1 : 0,
+                    transition: "opacity 0.08s",
+                  }}
+                />
+              </div>
+              <input
+                ref={usecaseInputRef}
+                type="text"
+                value={usecase}
+                onChange={(e) => setUsecase(e.target.value)}
+                onKeyDown={handleKeyDown}
+                autoComplete="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                style={{
+                  position: "fixed",
+                  top: -100,
+                  left: -100,
+                  width: 1,
+                  height: 1,
+                  opacity: 0.01,
+                  border: "none",
+                  padding: 0,
+                  outline: "none",
+                  caretColor: "transparent",
+                }}
+                autoFocus
+              />
+              <div
+                style={{
+                  marginTop: 24,
+                  fontSize: 12,
+                  color: "#bbb",
+                  whiteSpace: "normal",
+                }}
+              >
+                optional — press enter to skip
+              </div>
+            </motion.div>
+          )}
+
+          {usecaseSubmitted && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              style={{ marginTop: 16 }}
+            >
+              {usecase.trim() ? (
+                <div style={{ color: "#dc143c" }}>✓ noted. thanks for sharing.</div>
+              ) : (
+                <div style={{ color: "#999" }}>skipped.</div>
               )}
             </motion.div>
           )}
@@ -606,10 +751,21 @@ export default function HomePage() {
         </motion.div>
       )}
 
-      {/* Click anywhere to focus input in email mode */}
+      {/* Click anywhere to focus input in email/usecase mode */}
       {mode === "email" && !submitted && (
         <div
           onClick={() => inputRef.current?.focus()}
+          style={{
+            position: "fixed",
+            inset: 0,
+            cursor: "text",
+            zIndex: 0,
+          }}
+        />
+      )}
+      {mode === "usecase" && !usecaseSubmitted && (
+        <div
+          onClick={() => usecaseInputRef.current?.focus()}
           style={{
             position: "fixed",
             inset: 0,
