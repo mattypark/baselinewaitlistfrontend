@@ -258,48 +258,13 @@ export default function HomePage() {
     }
   }, [mode]);
 
-  // Listen for Ctrl+C / Escape globally when in terminal/email/usecase mode
-  useEffect(() => {
-    if (mode !== "terminal" && mode !== "email" && mode !== "usecase") return;
-
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Escape exits immediately
-      if (e.key === "Escape") {
-        e.preventDefault();
-        setTimeout(() => setMode("exiting"), 0);
-        return;
-      }
-
-      if (e.key === "c" && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-
-        setCtrlCCount((prev) => {
-          const newCount = prev + 1;
-          if (newCount >= 2) {
-            setTimeout(() => setMode("exiting"), 0);
-            return 0;
-          }
-          return newCount;
-        });
-
-        if (ctrlCTimerRef.current) clearTimeout(ctrlCTimerRef.current);
-        ctrlCTimerRef.current = setTimeout(() => {
-          setCtrlCCount(0);
-        }, 1500);
-      }
-    };
-
-    window.addEventListener("keydown", handleGlobalKeyDown);
-    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [mode]);
-
   const handleWaitlistClick = () => {
     if (mode === "home") {
       setMode("terminal");
     }
   };
 
-  const handleEmailSubmit = async () => {
+  const handleEmailSubmit = useCallback(async () => {
     if (!email.trim() || !email.includes("@") || submitting) return;
     setSubmitting(true);
 
@@ -329,9 +294,9 @@ export default function HomePage() {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [email, submitting]);
 
-  const handleUsecaseSubmit = async () => {
+  const handleUsecaseSubmit = useCallback(async () => {
     if (usecaseSubmitted) return;
     setUsecaseSubmitted(true);
     // Send usecase to backend if provided
@@ -349,7 +314,7 @@ export default function HomePage() {
     }
     // Go back home via exit animation
     setTimeout(() => setMode("exiting"), 1500);
-  };
+  }, [email, usecase, usecaseSubmitted]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -357,6 +322,49 @@ export default function HomePage() {
       else if (mode === "usecase") handleUsecaseSubmit();
     }
   };
+
+  // Listen for Ctrl+C / Escape / Enter globally when in terminal/email/usecase mode
+  useEffect(() => {
+    if (mode !== "terminal" && mode !== "email" && mode !== "usecase") return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Escape exits immediately
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setTimeout(() => setMode("exiting"), 0);
+        return;
+      }
+
+      // Enter submits email or usecase
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (mode === "email") handleEmailSubmit();
+        else if (mode === "usecase") handleUsecaseSubmit();
+        return;
+      }
+
+      if (e.key === "c" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+
+        setCtrlCCount((prev) => {
+          const newCount = prev + 1;
+          if (newCount >= 2) {
+            setTimeout(() => setMode("exiting"), 0);
+            return 0;
+          }
+          return newCount;
+        });
+
+        if (ctrlCTimerRef.current) clearTimeout(ctrlCTimerRef.current);
+        ctrlCTimerRef.current = setTimeout(() => {
+          setCtrlCCount(0);
+        }, 1500);
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [mode, handleEmailSubmit, handleUsecaseSubmit]);
 
   return (
     <div
