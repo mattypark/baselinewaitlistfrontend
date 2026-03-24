@@ -553,47 +553,65 @@ export default function HomePage() {
               style={{
                 marginTop: 16,
                 position: "relative",
-                whiteSpace: "pre",
               }}
             >
-              <span style={{ color: "#dc143c" }}>enter email: </span>
-              <span>{email}</span>
-              <span
-                style={{
-                  display: "inline-block",
-                  width: "0.55em",
-                  height: "2px",
-                  background: "#111",
-                  verticalAlign: "baseline",
-                  marginLeft: "1px",
-                  marginBottom: "-0.15em",
-                  opacity: emailCursorVisible ? 1 : 0,
-                  transition: "opacity 0.08s",
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleEmailSubmit();
                 }}
-              />
-              <input
-                ref={inputRef}
-                type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={handleKeyDown}
-                autoComplete="off"
-                autoCapitalize="off"
-                spellCheck={false}
                 style={{
-                  position: "fixed",
-                  top: -100,
-                  left: -100,
-                  width: 1,
-                  height: 1,
-                  opacity: 0.01,
-                  border: "none",
-                  padding: 0,
-                  outline: "none",
-                  caretColor: "transparent",
+                  display: "flex",
+                  alignItems: "center",
+                  position: "relative",
                 }}
-                autoFocus
-              />
+              >
+                <span style={{ color: "#dc143c", whiteSpace: "pre", flexShrink: 0 }}>enter email: </span>
+                <input
+                  ref={inputRef}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  style={{
+                    flex: 1,
+                    background: "none",
+                    border: "none",
+                    outline: "none",
+                    color: "#111",
+                    fontSize: 14,
+                    fontFamily: "var(--font-geist-mono)",
+                    padding: 0,
+                    caretColor: "#111",
+                    minWidth: 0,
+                  }}
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={!email.trim() || !email.includes("@") || submitting}
+                  style={{
+                    background: "none",
+                    border: "1px solid",
+                    borderColor: email.trim() && email.includes("@") ? "#dc143c" : "#ddd",
+                    borderRadius: 4,
+                    cursor: email.trim() && email.includes("@") ? "pointer" : "default",
+                    color: email.trim() && email.includes("@") ? "#dc143c" : "#ccc",
+                    fontSize: 14,
+                    fontFamily: "var(--font-geist-mono)",
+                    padding: "2px 8px",
+                    marginLeft: 8,
+                    flexShrink: 0,
+                    transition: "all 0.2s ease",
+                    opacity: submitting ? 0.5 : 1,
+                  }}
+                  aria-label="Submit email"
+                >
+                  ✓
+                </button>
+              </form>
               <div
                 style={{
                   marginTop: 24,
@@ -648,50 +666,63 @@ export default function HomePage() {
               style={{
                 marginTop: 16,
                 position: "relative",
-                whiteSpace: "pre",
               }}
             >
               <div style={{ color: "#111" }}>what will you use Baseline for?</div>
-              <div style={{ marginTop: 4 }}>
-                <span style={{ color: "#dc143c" }}>&gt; </span>
-                <span style={{ color: "#dc143c" }}>{usecase}</span>
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: "0.55em",
-                    height: "2px",
-                    background: "#111",
-                    verticalAlign: "baseline",
-                    marginLeft: "1px",
-                    marginBottom: "-0.15em",
-                    opacity: emailCursorVisible ? 1 : 0,
-                    transition: "opacity 0.08s",
-                  }}
-                />
-              </div>
-              <input
-                ref={usecaseInputRef}
-                type="text"
-                value={usecase}
-                onChange={(e) => setUsecase(e.target.value)}
-                onKeyDown={handleKeyDown}
-                autoComplete="off"
-                autoCapitalize="off"
-                spellCheck={false}
-                style={{
-                  position: "fixed",
-                  top: -100,
-                  left: -100,
-                  width: 1,
-                  height: 1,
-                  opacity: 0.01,
-                  border: "none",
-                  padding: 0,
-                  outline: "none",
-                  caretColor: "transparent",
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleUsecaseSubmit();
                 }}
-                autoFocus
-              />
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginTop: 4,
+                }}
+              >
+                <span style={{ color: "#dc143c", whiteSpace: "pre", flexShrink: 0 }}>&gt; </span>
+                <input
+                  ref={usecaseInputRef}
+                  type="text"
+                  value={usecase}
+                  onChange={(e) => setUsecase(e.target.value)}
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  style={{
+                    flex: 1,
+                    background: "none",
+                    border: "none",
+                    outline: "none",
+                    color: "#dc143c",
+                    fontSize: 14,
+                    fontFamily: "var(--font-geist-mono)",
+                    padding: 0,
+                    caretColor: "#dc143c",
+                    minWidth: 0,
+                  }}
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  style={{
+                    background: "none",
+                    border: "1px solid #dc143c",
+                    borderRadius: 4,
+                    cursor: "pointer",
+                    color: "#dc143c",
+                    fontSize: 14,
+                    fontFamily: "var(--font-geist-mono)",
+                    padding: "2px 8px",
+                    marginLeft: 8,
+                    flexShrink: 0,
+                    transition: "all 0.2s ease",
+                  }}
+                  aria-label="Submit usecase"
+                >
+                  ✓
+                </button>
+              </form>
               <div
                 style={{
                   marginTop: 24,
@@ -759,29 +790,6 @@ export default function HomePage() {
         </motion.div>
       )}
 
-      {/* Click anywhere to focus input in email/usecase mode */}
-      {mode === "email" && !submitted && (
-        <div
-          onClick={() => inputRef.current?.focus()}
-          style={{
-            position: "fixed",
-            inset: 0,
-            cursor: "text",
-            zIndex: 0,
-          }}
-        />
-      )}
-      {mode === "usecase" && !usecaseSubmitted && (
-        <div
-          onClick={() => usecaseInputRef.current?.focus()}
-          style={{
-            position: "fixed",
-            inset: 0,
-            cursor: "text",
-            zIndex: 0,
-          }}
-        />
-      )}
 
       {/* Bottom strip */}
       <div
